@@ -7,8 +7,14 @@ environment:
   sdk: ^3.13.2
 
 dependencies:
+  bloc: 9.2.1
+  bluetooth_low_energy: 6.2.1
+  collection: 1.19.1
   flutter:
     sdk: flutter
+  flutter_bloc: 9.1.1
+  permission_handler: 13.0.1
+  provider: 6.1.5
 
 dev_dependencies:
   flutter_test:

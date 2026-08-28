@@ -1,0 +1,1 @@
+enum BleConnectionState { connected, disconnected }
