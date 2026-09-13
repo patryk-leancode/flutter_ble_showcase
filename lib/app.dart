@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/home/home_page.dart';
+import 'package:flutter_ble_showcase/usecase/check_ble_permissions_usecase.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -44,6 +45,9 @@ class _GlobalProvidersState extends State<GlobalProviders> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<CheckBlePermissionsUsecase>(
+          create: (context) => CheckBlePermissionsUsecase(),
+        ),
         Provider<PeripheralManager>(create: (context) => PeripheralManager()),
         Provider<CentralManager>(create: (context) => CentralManager()),
       ],
@@ -56,8 +60,6 @@ class _GlobalProvidersState extends State<GlobalProviders> {
       await Permission.bluetoothAdvertise.request();
       await Permission.bluetoothConnect.request();
       await Permission.bluetoothScan.request();
-      await Permission.locationWhenInUse.request();
-      await Permission.bluetooth.request();
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/peripheral/peripheral_cubit.dart';
 import 'package:flutter_ble_showcase/features/peripheral/peripheral_list/peripheral_list_page.dart';
+import 'package:flutter_ble_showcase/usecase/check_ble_permissions_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PeripheralPage extends StatelessWidget {
@@ -10,8 +11,10 @@ class PeripheralPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PeripheralCubit>(
-      create: (context) =>
-          PeripheralCubit(context.read<PeripheralManager>())..init(),
+      create: (context) => PeripheralCubit(
+        context.read<PeripheralManager>(),
+        context.read<CheckBlePermissionsUsecase>(),
+      )..init(),
       child: const _PeripheralScreen(),
     );
   }
