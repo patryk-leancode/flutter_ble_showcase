@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/home/home_page.dart';
 import 'package:flutter_ble_showcase/usecase/check_ble_permissions_usecase.dart';
@@ -48,8 +47,6 @@ class _GlobalProvidersState extends State<GlobalProviders> {
         Provider<CheckBlePermissionsUsecase>(
           create: (context) => CheckBlePermissionsUsecase(),
         ),
-        Provider<PeripheralManager>(create: (context) => PeripheralManager()),
-        Provider<CentralManager>(create: (context) => CentralManager()),
       ],
       child: widget.child,
     );

@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:flutter_ble_showcase/model/ble_connection_state.dart';
 import 'package:flutter_ble_showcase/model/peripheral.dart';
 import 'package:flutter_ble_showcase/usecase/check_ble_permissions_usecase.dart';
 import 'package:flutter_ble_showcase/util/utils.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 sealed class PeripheralState {
   const PeripheralState();
@@ -35,22 +34,28 @@ final class PeripheralConnectedState extends PeripheralState {
 }
 
 class PeripheralCubit extends Cubit<PeripheralState> {
-  PeripheralCubit(this._manager, this._checkBlePermissions)
+  PeripheralCubit(this._checkBlePermissions)
     : super(const PeripheralInitializingState());
 
-  final PeripheralManager _manager;
   final CheckBlePermissionsUsecase _checkBlePermissions;
 
   StreamSubscription? _connectionSub;
   StreamSubscription? _deviceSub;
 
   // TODO: Integrate with Bloc State
-  Central? _connectedCentral;
   bool isAdvertising = false;
-  final List<GATTService> _addedServices = [];
+  String? _connectedCentral;
+  final List<BlePeripheralService> _addedServices = [];
 
   Future<void> init() async {
     print('PeripheralCubit.init()');
+    final capabilities = await UniversalBlePeripheral.getCapabilities();
+    if (!capabilities.supportsPeripheralMode) {
+      print('Does not support peripheral mode');
+      emit(PeripheralErrorState());
+      return;
+    }
+
     if (Platform.isAndroid) {
       final arePermissionsGranted = await _checkBlePermissions(
         permissions: [.bluetoothAdvertise],
@@ -61,17 +66,19 @@ class PeripheralCubit extends Cubit<PeripheralState> {
         emit(PeripheralErrorState());
         return;
       }
-
-      _connectionSub = _manager.connectionStateChanged
-          .map(_mapArgs)
-          .listen(_onConnectionStateChange);
     }
 
-    final state = _manager.state;
-    if (state == .poweredOn) {
+    _connectionSub = UniversalBlePeripheral.connectionStateStream.listen(
+      _onConnectionStateChange,
+    );
+
+    final state = await UniversalBlePeripheral.getAvailabilityState();
+    if (state == .ready) {
       _startAdvertising();
     } else {
-      _deviceSub = _manager.stateChanged.listen(_onDeviceStateChanged);
+      _deviceSub = UniversalBle.availabilityStream.listen(
+        _onDeviceStateChanged,
+      );
     }
   }
 
@@ -81,42 +88,29 @@ class PeripheralCubit extends Cubit<PeripheralState> {
 
     final services = [counterServiceUuid];
 
-    final advertisement = Advertisement(
-      name: advertisedName,
-      serviceUUIDs: services.map(UUID.fromString).toList(),
+    UniversalBlePeripheral.startAdvertising(
+      services: services,
+      localName: advertisedName,
     );
-
-    await _manager.startAdvertising(advertisement);
 
     const model = PeripheralModel(name: advertisedName);
     emit(const PeripheralInitializedState(model: model));
   }
 
-  BleConnectionState _mapArgs(CentralConnectionStateChangedEventArgs args) {
-    print('PeripheralCubit._mapArgs: $args');
-    switch (args.state) {
-      case .disconnected:
-        if (_connectedCentral?.uuid == args.central.uuid) {
-          _connectedCentral = null;
-          _addedServices.clear();
-        }
-        return .disconnected;
-      case .connected:
-        _connectedCentral = args.central;
-        return .connected;
-    }
-  }
-
-  void _onConnectionStateChange(BleConnectionState state) {
+  void _onConnectionStateChange(BlePeripheralConnectionStateChanged event) {
     print('PeripheralCubit._onConnectionStateChange: $state');
-    if (state == .connected) {
+    if (event.connected) {
+      _connectedCentral = event.deviceId;
       emit(const PeripheralConnectedState());
+    } else if (_connectedCentral == event.deviceId) {
+      _connectedCentral = null;
+      _addedServices.clear();
     }
   }
 
-  void _onDeviceStateChanged(BluetoothLowEnergyStateChangedEventArgs args) {
-    print('PeripheralCubit._onDeviceStateChanged: $args');
-    if (args.state == .poweredOn) {
+  void _onDeviceStateChanged(AvailabilityState state) {
+    print('PeripheralCubit._onDeviceStateChanged: $state');
+    if (state == .poweredOn) {
       _startAdvertising();
     }
   }
@@ -124,37 +118,32 @@ class PeripheralCubit extends Cubit<PeripheralState> {
   Future<void> _addServices() async {
     print('PeripheralCubit._addServices');
     final characteristics = [
-      GATTCharacteristic.mutable(
-        uuid: UUID.fromString(counterReadCharacteristicUuid),
+      BlePeripheralCharacteristic(
+        uuid: counterReadCharacteristicUuid,
         properties: [.read],
-        permissions: [.read],
-        descriptors: [],
+        permissions: [.readable],
       ),
-      GATTCharacteristic.mutable(
-        uuid: UUID.fromString(counterWriteCharacteristicUuid),
+      BlePeripheralCharacteristic(
+        uuid: counterWriteCharacteristicUuid,
         properties: [.writeWithoutResponse],
-        permissions: [.write],
-        descriptors: [],
+        permissions: [.writeable],
       ),
-      GATTCharacteristic.mutable(
-        uuid: UUID.fromString(counterReadCharacteristicUuid),
+      BlePeripheralCharacteristic(
+        uuid: counterReadCharacteristicUuid,
         properties: [.notify],
-        permissions: [.read],
-        descriptors: [],
+        permissions: [.readable],
       ),
     ];
 
     final services = [
-      GATTService(
-        uuid: .fromString(counterServiceUuid),
-        isPrimary: true,
-        includedServices: [],
+      BlePeripheralService(
+        uuid: counterServiceUuid,
         characteristics: characteristics,
       ),
     ];
 
     for (final service in services) {
-      await _manager.addService(service);
+      await UniversalBlePeripheral.addService(service);
       _addedServices.add(service);
     }
   }
@@ -168,7 +157,7 @@ class PeripheralCubit extends Cubit<PeripheralState> {
     _deviceSub?.cancel();
     _deviceSub = null;
 
-    _manager.stopAdvertising();
+    UniversalBlePeripheral.stopAdvertising();
 
     return super.close();
   }
