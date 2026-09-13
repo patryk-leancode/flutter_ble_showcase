@@ -64,7 +64,7 @@ class _PeripheralInitializing extends StatelessWidget {
     return Text(
       'Initializing BLE Peripheral...',
       style: Theme.of(context).textTheme.headlineMedium,
-      textAlign: TextAlign.center,
+      textAlign: .center,
     );
   }
 }
@@ -77,7 +77,7 @@ class _PeripheralInitialized extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: .min,
       children: [
         Text('Name:', style: Theme.of(context).textTheme.headlineSmall),
         Text(state.model.name, style: Theme.of(context).textTheme.bodyLarge),

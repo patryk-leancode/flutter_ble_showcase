@@ -16,7 +16,7 @@ class FlutterBleShowcaseApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Łódź BLE',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          colorScheme: .fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
         home: const HomePage(),

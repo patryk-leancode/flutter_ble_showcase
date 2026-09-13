@@ -5,3 +5,7 @@ analyzer:
     - build/**
     - android/**
     - ios/**
+
+linter:
+  rules:
+    avoid_print: false
