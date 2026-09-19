@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -9,9 +11,13 @@ class CentralListCubit extends Cubit<CentralListState> {
 
   final BleDevice connectedDevice;
 
+  StreamSubscription? _connectionSub;
+
   Future<void> disconnect() async {
     emit(CentralListState.disconnecting);
-    connectedDevice.connectionStream.listen(_onConnectionStateChanged);
+    _connectionSub = connectedDevice.connectionStream.listen(
+      _onConnectionStateChanged,
+    );
     await connectedDevice.disconnect();
   }
 
@@ -19,5 +25,13 @@ class CentralListCubit extends Cubit<CentralListState> {
     if (!isConnected) {
       emit(CentralListState.disconnected);
     }
+  }
+
+  @override
+  Future<void> close() {
+    _connectionSub?.cancel();
+    _connectionSub = null;
+
+    return super.close();
   }
 }

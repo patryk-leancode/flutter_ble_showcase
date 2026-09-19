@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter_ble_showcase/util/extensions/ble_device_ext.dart';
-import 'package:flutter_ble_showcase/util/utils.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 sealed class CentralState {

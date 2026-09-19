@@ -1,36 +1,35 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bloc/bloc.dart';
-import 'package:flutter_ble_showcase/model/ble_connection_state.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 enum PeripheralListState { ready, disconnected }
 
 class PeripheralListCubit extends Cubit<PeripheralListState> {
   PeripheralListCubit() : super(PeripheralListState.ready);
 
-  StreamSubscription? sub;
+  StreamSubscription? _connectionSub;
 
   Future<void> init() async {
-    // if (Platform.isAndroid) {
-    //   sub = _manager.connectionStateStream.listen(_onConnectionStateChange);
-    // }
+    _connectionSub = UniversalBlePeripheral.connectionStateStream.listen(
+      _onConnectionStateChange,
+    );
   }
 
   void disconnect() {
     emit(PeripheralListState.disconnected);
   }
 
-  void _onConnectionStateChange(BleConnectionState state) {
-    if (state == BleConnectionState.disconnected) {
+  void _onConnectionStateChange(BlePeripheralConnectionStateChanged event) {
+    if (!event.connected) {
       emit(PeripheralListState.disconnected);
     }
   }
 
   @override
   Future<void> close() {
-    sub?.cancel();
-    sub = null;
+    _connectionSub?.cancel();
+    _connectionSub = null;
 
     return super.close();
   }
