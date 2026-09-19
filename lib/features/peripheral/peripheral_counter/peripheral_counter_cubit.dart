@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:flutter_ble_showcase/util/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 sealed class PeripheralCounterState {
   const PeripheralCounterState({
@@ -36,11 +39,10 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
         ),
       );
 
-  StreamSubscription? _readSub;
   StreamSubscription? _writeSub;
 
   void init() {
-    // _readSub = _manager.characteristicReadRequestsStream.listen(_onReadRequest);
+    UniversalBlePeripheral.setReadRequestHandlers(_onReadRequest);
     // _writeSub = _manager.characteristicWriteRequestsStream.listen(
     //   _onWriteRequest,
     // );
@@ -79,11 +81,18 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
     );
   }
 
-  // void _onReadRequest(BleCharacteristicReadRequest request) {
-  //   if (request.uuid == counterReadCharacteristicUuid) {
-  //     request.respond(state.peripheralValue);
-  //   }
-  // }
+  PeripheralReadRequestResult? _onReadRequest(
+    String deviceId,
+    String characteristicId,
+    int offset,
+    Uint8List? value,
+  ) {
+    if (characteristicId == counterReadCharacteristicUuid) {
+      return PeripheralReadRequestResult(
+        value: uInt8ListFromInt(state.peripheralValue),
+      );
+    }
+  }
 
   // void _onWriteRequest(BleCharacteristicWriteRequest request) {
   //   if (request.uuid == counterWriteCharacteristicUuid) {
@@ -99,9 +108,6 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
 
   @override
   Future<void> close() {
-    _readSub?.cancel();
-    _readSub = null;
-
     _writeSub?.cancel();
     _writeSub = null;
 

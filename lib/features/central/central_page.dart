@@ -34,7 +34,7 @@ class _CentralScreen extends StatelessWidget {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) =>
-                  CentralListPage(connectedDevice: peripheral),
+                  CentralListPage(connectedPeripheral: peripheral),
             ),
             (route) => false,
           );

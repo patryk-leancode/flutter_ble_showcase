@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/central/central_counter/central_counter_cubit.dart';
 import 'package:flutter_ble_showcase/widgets/loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 class CentralCounterPage extends StatelessWidget {
-  const CentralCounterPage({super.key});
+  const CentralCounterPage({super.key, required this.connectedPeripheral});
+
+  final BleDevice connectedPeripheral;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CentralCounterCubit()..init(),
+      create: (context) =>
+          CentralCounterCubit(connectedPeripheral: connectedPeripheral)..init(),
       child: const _CentralCounterScreen(),
     );
   }
@@ -30,12 +34,14 @@ class _CentralCounterScreen extends StatelessWidget {
           return Stack(
             alignment: Alignment.center,
             children: [
-              _Content(
-                peripheralValue: state.peripheralValue,
-                centralValue: state.centralValue,
-                peripheralStreamValue: state.peripheralStreamValue,
-                areButtonsEnabled: state.areButtonsEnabled,
-              ),
+              state.isError
+                  ? _Error()
+                  : _Content(
+                      peripheralValue: state.peripheralValue,
+                      centralValue: state.centralValue,
+                      peripheralStreamValue: state.peripheralStreamValue,
+                      areButtonsEnabled: state.areButtonsEnabled,
+                    ),
               if (state.isLoading) const Loader(),
             ],
           );
@@ -149,5 +155,12 @@ class _CounterButtons extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _Error extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Error while performing BLE operation'));
   }
 }

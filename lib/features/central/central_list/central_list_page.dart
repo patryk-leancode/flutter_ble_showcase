@@ -8,21 +8,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class CentralListPage extends StatelessWidget {
-  const CentralListPage({super.key, required this.connectedDevice});
+  const CentralListPage({super.key, required this.connectedPeripheral});
 
-  final BleDevice connectedDevice;
+  final BleDevice connectedPeripheral;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CentralListCubit(connectedDevice: connectedDevice),
-      child: const _CentralListScreen(),
+      create: (context) =>
+          CentralListCubit(connectedDevice: connectedPeripheral),
+      child: _CentralListScreen(connectedPeripheral: connectedPeripheral),
     );
   }
 }
 
 class _CentralListScreen extends StatelessWidget {
-  const _CentralListScreen();
+  const _CentralListScreen({required this.connectedPeripheral});
+
+  final BleDevice connectedPeripheral;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +43,7 @@ class _CentralListScreen extends StatelessWidget {
           return Stack(
             alignment: Alignment.center,
             children: [
-              const _Content(),
+              _Content(connectedPeripheral: connectedPeripheral),
               if (state == CentralListState.disconnecting) const Loader(),
             ],
           );
@@ -51,13 +54,18 @@ class _CentralListScreen extends StatelessWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content();
+  const _Content({required this.connectedPeripheral});
+
+  final BleDevice connectedPeripheral;
 
   @override
   Widget build(BuildContext context) {
     void onCounterTap() {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CentralCounterPage()),
+        MaterialPageRoute(
+          builder: (context) =>
+              CentralCounterPage(connectedPeripheral: connectedPeripheral),
+        ),
       );
     }
 
