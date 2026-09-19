@@ -43,9 +43,8 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
 
   void init() {
     UniversalBlePeripheral.setReadRequestHandlers(_onReadRequest);
-    // _writeSub = _manager.characteristicWriteRequestsStream.listen(
-    //   _onWriteRequest,
-    // );
+
+    UniversalBlePeripheral.setWriteRequestHandlers(_onWriteRequest);
   }
 
   void increment() => _updateValue(state.peripheralValue + 1);
@@ -91,20 +90,34 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
       return PeripheralReadRequestResult(
         value: uInt8ListFromInt(state.peripheralValue),
       );
+    } else {
+      return null;
     }
   }
 
-  // void _onWriteRequest(BleCharacteristicWriteRequest request) {
-  //   if (request.uuid == counterWriteCharacteristicUuid) {
-  //     emit(
-  //       PeripheralCounterReadyState(
-  //         peripheralValue: state.peripheralValue,
-  //         centralValue: request.value,
-  //         peripheralStreamValue: state.peripheralStreamValue,
-  //       ),
-  //     );
-  //   }
-  // }
+  PeripheralWriteRequestResult? _onWriteRequest(
+    String deviceId,
+    String characteristicId,
+    int offset,
+    Uint8List? value,
+  ) {
+    if (characteristicId == counterWriteCharacteristicUuid) {
+      if (value case final value?) {
+        emit(
+          PeripheralCounterReadyState(
+            peripheralValue: state.peripheralValue,
+            centralValue: intFromUint8List(value),
+            peripheralStreamValue: state.peripheralStreamValue,
+          ),
+        );
+        return PeripheralWriteRequestResult();
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
 
   @override
   Future<void> close() {

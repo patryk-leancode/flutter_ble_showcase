@@ -70,7 +70,6 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
           peripheralValue: 0,
           centralValue: 0,
           peripheralStreamValue: 0,
-          isError: false,
         ),
       );
 
@@ -93,7 +92,6 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
         peripheralValue: state.peripheralValue,
         centralValue: state.centralValue,
         peripheralStreamValue: state.peripheralStreamValue,
-        isError: false,
       ),
     );
 
@@ -103,6 +101,7 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
     );
 
     final value = await characteristic.read();
+    print('raw bytes: $value, length: ${value.length}');
 
     emit(
       CentralCounterReadyState(
@@ -126,11 +125,12 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
       ),
     );
 
-    // await _manager.write(
-    //   serviceUuid: counterServiceUuid,
-    //   characteristicUuid: counterWriteCharacteristicUuid,
-    //   value: value,
-    // );
+    final characteristic = await connectedPeripheral.getCharacteristic(
+      counterWriteCharacteristicUuid,
+      service: counterServiceUuid,
+    );
+
+    await characteristic.write(uInt8ListFromInt(value), withResponse: false);
 
     emit(
       CentralCounterReadyState(
@@ -149,31 +149,6 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
         peripheralStreamValue: value,
       ),
     );
-  }
-
-  Future<BleCharacteristic?> _findCharacteristic({
-    required String serviceUuid,
-    required String characteristicUuid,
-  }) async {
-    final services = await connectedPeripheral.discoverServices();
-
-    final service = services.firstWhereOrNull((s) => s.uuid == serviceUuid);
-    if (service == null) {
-      print('Did not find service');
-      return null;
-    }
-
-    final characteristics = service.characteristics;
-
-    final characteristic = characteristics.firstWhereOrNull(
-      (c) => c.uuid == characteristicUuid,
-    );
-    if (characteristic == null) {
-      print('Did not find characteristic');
-      return null;
-    }
-
-    return characteristic;
   }
 
   @override
