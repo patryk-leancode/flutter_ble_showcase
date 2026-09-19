@@ -49,7 +49,9 @@ class _CentralScreen extends StatelessWidget {
           return switch (state) {
             CentralInitializingState() => _Loading(state: state),
             CentralSearchingState() => _Loading(state: state),
-            CentralDataState() => _PeripheralList(devices: state.peripherals),
+            CentralDataState() => _PeripheralList(
+              devices: state.peripherals.values.toList(),
+            ),
             CentralConnectingState() => _Loading(state: state),
             CentralConnectedState() => _Connected(peripheral: state.peripheral),
             CentralErrorState() => const _Error(),
@@ -85,7 +87,9 @@ class _PeripheralList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void onPeripheralTap(BleDevice peripheral) {
-      // context.read<CentralCubit>().connectToPeripheral(uuid: peripheral.uuid);
+      context.read<CentralCubit>().connectToPeripheral(
+        uuid: peripheral.deviceId,
+      );
     }
 
     return Column(

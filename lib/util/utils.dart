@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-const advertisedName = 'Hello, Berlin';
+const advertisedName = 'BLE';
 
 const counterServiceUuid = 'ac8d5f91-b303-4cb4-81d7-db8df5a827fb';
 
@@ -16,6 +16,7 @@ Future<void> dummyRequestVeryShort() async =>
 Future<void> dummyRequest() async =>
     await Future<void>.delayed(const Duration(seconds: 2));
 
+// TODO: Simplify it
 Uint8List uInt8ListFromInt(int n) {
   List<int> bytes = [];
   final sign = n >= 0 ? 0 : 1;

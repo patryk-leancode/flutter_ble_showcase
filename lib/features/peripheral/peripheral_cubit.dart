@@ -41,10 +41,12 @@ class PeripheralCubit extends Cubit<PeripheralState> {
 
   StreamSubscription? _connectionSub;
   StreamSubscription? _deviceSub;
+  StreamSubscription? _advertisementSub;
 
   // TODO: Integrate with Bloc State
   bool isAdvertising = false;
   String? _connectedCentral;
+  _CubitAdvertisingSate _advertisingState = .idle;
   final List<BlePeripheralService> _addedServices = [];
 
   Future<void> init() async {
@@ -69,7 +71,7 @@ class PeripheralCubit extends Cubit<PeripheralState> {
     }
 
     _connectionSub = UniversalBlePeripheral.connectionStateStream.listen(
-      _onConnectionStateChange,
+      _onConnectionStateChanged,
     );
 
     final state = await UniversalBlePeripheral.getAvailabilityState();
@@ -84,6 +86,13 @@ class PeripheralCubit extends Cubit<PeripheralState> {
 
   Future<void> _startAdvertising() async {
     print('PeripheralCubit._startAdvertising');
+    if (_advertisingState == .advertising) {
+      print('PeripheralCubit._startAdvertising: Already advertising');
+      return;
+    }
+
+    _advertisingState = .advertising;
+
     await _addServices();
 
     final services = [counterServiceUuid];
@@ -93,12 +102,16 @@ class PeripheralCubit extends Cubit<PeripheralState> {
       localName: advertisedName,
     );
 
+    _advertisementSub = UniversalBlePeripheral.advertisingStateStream.listen(
+      _onAdvertisingStateChanged,
+    );
+
     const model = PeripheralModel(name: advertisedName);
     emit(const PeripheralInitializedState(model: model));
   }
 
-  void _onConnectionStateChange(BlePeripheralConnectionStateChanged event) {
-    print('PeripheralCubit._onConnectionStateChange: $state');
+  void _onConnectionStateChanged(BlePeripheralConnectionStateChanged event) {
+    print('PeripheralCubit._onConnectionStateChange: $event');
     if (event.connected) {
       _connectedCentral = event.deviceId;
       emit(const PeripheralConnectedState());
@@ -113,6 +126,12 @@ class PeripheralCubit extends Cubit<PeripheralState> {
     if (state == .poweredOn) {
       _startAdvertising();
     }
+  }
+
+  void _onAdvertisingStateChanged(BlePeripheralAdvertisingStateChanged event) {
+    print(
+      'PeripheralCubit._onAdvertisingStateChanged: {state: ${event.state}${event.error != null ? ' error: ${event.error!}' : ''}}',
+    );
   }
 
   Future<void> _addServices() async {
@@ -157,8 +176,13 @@ class PeripheralCubit extends Cubit<PeripheralState> {
     _deviceSub?.cancel();
     _deviceSub = null;
 
+    _advertisementSub?.cancel();
+    _advertisementSub = null;
+
     UniversalBlePeripheral.stopAdvertising();
 
     return super.close();
   }
 }
+
+enum _CubitAdvertisingSate { idle, advertising }
