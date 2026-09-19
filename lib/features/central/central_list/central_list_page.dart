@@ -5,14 +5,17 @@ import 'package:flutter_ble_showcase/features/home/home_page.dart';
 import 'package:flutter_ble_showcase/widgets/bluetooth_features_list.dart';
 import 'package:flutter_ble_showcase/widgets/loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 class CentralListPage extends StatelessWidget {
-  const CentralListPage({super.key});
+  const CentralListPage({super.key, required this.connectedDevice});
+
+  final BleDevice connectedDevice;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CentralListCubit(),
+      create: (context) => CentralListCubit(connectedDevice: connectedDevice),
       child: const _CentralListScreen(),
     );
   }

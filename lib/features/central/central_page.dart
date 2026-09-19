@@ -30,9 +30,12 @@ class _CentralScreen extends StatelessWidget {
         case CentralConnectingState():
         case CentralErrorState():
           break;
-        case CentralConnectedState():
+        case CentralConnectedState(peripheral: final peripheral):
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const CentralListPage()),
+            MaterialPageRoute(
+              builder: (context) =>
+                  CentralListPage(connectedDevice: peripheral),
+            ),
             (route) => false,
           );
       }

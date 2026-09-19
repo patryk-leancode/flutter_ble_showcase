@@ -1,13 +1,23 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 enum CentralListState { ready, disconnecting, disconnected }
 
 class CentralListCubit extends Cubit<CentralListState> {
-  CentralListCubit() : super(CentralListState.ready);
+  CentralListCubit({required this.connectedDevice})
+    : super(CentralListState.ready);
+
+  final BleDevice connectedDevice;
 
   Future<void> disconnect() async {
     emit(CentralListState.disconnecting);
-    // TODO: disconnect
-    emit(CentralListState.disconnected);
+    connectedDevice.connectionStream.listen(_onConnectionStateChanged);
+    await connectedDevice.disconnect();
+  }
+
+  void _onConnectionStateChanged(bool isConnected) {
+    if (!isConnected) {
+      emit(CentralListState.disconnected);
+    }
   }
 }
