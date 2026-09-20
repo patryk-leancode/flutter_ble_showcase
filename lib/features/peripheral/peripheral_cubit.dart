@@ -148,7 +148,7 @@ class PeripheralCubit extends Cubit<PeripheralState> {
         permissions: [.writeable],
       ),
       BlePeripheralCharacteristic(
-        uuid: counterReadCharacteristicUuid,
+        uuid: counterNotifyCharacteristicUuid,
         properties: [.notify],
         permissions: [.readable],
       ),

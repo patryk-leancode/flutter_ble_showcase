@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_ble_showcase/util/utils.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -77,13 +77,14 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
 
   StreamSubscription? sub;
 
-  void init() {
-    // sub = _manager
-    //     .stream(
-    //       serviceUuid: counterServiceUuid,
-    //       characteristicUuid: counterNotifyCharacteristicUuid,
-    //     )
-    //     .listen(_onStreamUpdate);
+  void init() async {
+    final characteristic = await connectedPeripheral.getCharacteristic(
+      counterNotifyCharacteristicUuid,
+      service: counterServiceUuid,
+    );
+
+    sub = characteristic.notifications.listen(_onStreamUpdate);
+    await characteristic.notifications.subscribe();
   }
 
   Future<void> refresh() async {
@@ -101,7 +102,6 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
     );
 
     final value = await characteristic.read();
-    print('raw bytes: $value, length: ${value.length}');
 
     emit(
       CentralCounterReadyState(
@@ -141,12 +141,12 @@ class CentralCounterCubit extends Cubit<CentralCounterState> {
     );
   }
 
-  void _onStreamUpdate(int value) {
+  void _onStreamUpdate(Uint8List value) {
     emit(
       CentralCounterReadyState(
         peripheralValue: state.peripheralValue,
         centralValue: state.centralValue,
-        peripheralStreamValue: value,
+        peripheralStreamValue: intFromUint8List(value),
       ),
     );
   }

@@ -65,12 +65,12 @@ class PeripheralCounterCubit extends Cubit<PeripheralCounterState> {
     );
   }
 
-  void _updateStreamValue(int value) {
-    // _manager.notifyListener(
-    //   serviceUuid: counterServiceUuid,
-    //   characteristicUuid: counterNotifyCharacteristicUuid,
-    //   value: value,
-    // );
+  void _updateStreamValue(int value) async {
+    await UniversalBlePeripheral.updateCharacteristicValue(
+      characteristicId: counterNotifyCharacteristicUuid,
+      value: uInt8ListFromInt(value),
+    );
+
     emit(
       PeripheralCounterReadyState(
         peripheralValue: state.peripheralValue,
