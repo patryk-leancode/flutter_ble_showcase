@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/peripheral/peripheral_cubit.dart';
-import 'package:flutter_ble_showcase/features/peripheral/peripheral_list/peripheral_list_page.dart';
+import 'package:flutter_ble_showcase/features/peripheral/peripheral_coffee_machine/peripheral_coffee_machine_page.dart';
 import 'package:flutter_ble_showcase/usecase/check_ble_permissions_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,7 +33,7 @@ class _PeripheralScreen extends StatelessWidget {
             if (state is PeripheralConnectedState) {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
-                  builder: (context) => const PeripheralListPage(),
+                  builder: (context) => const PeripheralCoffeeMachinePage(),
                 ),
                 (route) => false,
               );
@@ -81,7 +81,9 @@ class _PeripheralInitialized extends StatelessWidget {
         const SizedBox(height: 16.0),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const PeripheralListPage()),
+            MaterialPageRoute(
+              builder: (context) => const PeripheralCoffeeMachinePage(),
+            ),
             (route) => false,
           ),
           child: const Text('Continue'),

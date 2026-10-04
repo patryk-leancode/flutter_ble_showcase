@@ -95,7 +95,7 @@ class PeripheralCubit extends Cubit<PeripheralState> {
 
     await _addServices();
 
-    final services = [counterServiceUuid];
+    final services = [coffeeMachineServiceUuid];
 
     UniversalBlePeripheral.startAdvertising(
       services: services,
@@ -138,17 +138,17 @@ class PeripheralCubit extends Cubit<PeripheralState> {
     print('PeripheralCubit._addServices');
     final characteristics = [
       BlePeripheralCharacteristic(
-        uuid: counterReadCharacteristicUuid,
+        uuid: cupsBrewedCharacteristicUuid,
         properties: [.read],
         permissions: [.readable],
       ),
       BlePeripheralCharacteristic(
-        uuid: counterWriteCharacteristicUuid,
+        uuid: brewCharacteristicUuid,
         properties: [.writeWithoutResponse],
         permissions: [.writeable],
       ),
       BlePeripheralCharacteristic(
-        uuid: counterNotifyCharacteristicUuid,
+        uuid: brewProgressCharacteristicUuid,
         properties: [.notify],
         permissions: [.readable],
       ),
@@ -156,7 +156,7 @@ class PeripheralCubit extends Cubit<PeripheralState> {
 
     final services = [
       BlePeripheralService(
-        uuid: counterServiceUuid,
+        uuid: coffeeMachineServiceUuid,
         characteristics: characteristics,
       ),
     ];

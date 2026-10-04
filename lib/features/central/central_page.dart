@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_showcase/features/central/central_cubit.dart';
-import 'package:flutter_ble_showcase/features/central/central_list/central_list_page.dart';
+import 'package:flutter_ble_showcase/features/central/central_coffee_machine/central_coffee_machine_page.dart';
 import 'package:flutter_ble_showcase/util/extensions/ble_device_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -34,7 +34,7 @@ class _CentralScreen extends StatelessWidget {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) =>
-                  CentralListPage(connectedPeripheral: peripheral),
+                  CentralCoffeeMachinePage(connectedPeripheral: peripheral),
             ),
             (route) => false,
           );
